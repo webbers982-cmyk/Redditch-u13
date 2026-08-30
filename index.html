@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Redditch Utd U13's</title>
+  <style>
+    :root {
+      --bg: #121212;
+      --card: #1e1e1e;
+      --accent: #2e7d32;
+      --text: #ffffff;
+      --subtext: #aaaaaa;
+      --danger: #d32f2f;
+      --warning: #f57c00;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 16px;
+      padding-top: max(16px, env(safe-area-inset-top));
+      padding-bottom: max(16px, env(safe-area-inset-bottom));
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    h1 { margin: 0 0 16px 0; font-weight: 600; font-size: 24px; text-align: center; }
+    h2, h3 { margin: 0 0 12px 0; font-weight: 600; }
+    
+    /* Navigation Tabs */
+    .tab-container {
+      display: flex;
+      background: #2a2a2a;
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 16px;
+    }
+    .tab-btn {
+      flex: 1;
+      background: transparent;
+      color: var(--subtext);
+      border: none;
+      padding: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .tab-btn.active {
+      background: var(--accent);
+      color: #fff;
+    }
+    
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center; }
+    .stat-box { background: #2a2a2a; border-radius: 8px; padding: 10px; }
+    .stat-num { font-size: 20px; font-weight: bold; margin-top: 4px; }
+    .flex-row { display: flex; gap: 8px; margin-bottom: 8px; }
+    input, select {
+      flex: 1;
+      background: #2a2a2a;
+      border: 1px solid #444;
+      color: #fff;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 16px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    button {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:active { opacity: 0.8; }
+    button.danger { background: var(--danger); }
+    button.warning { background: var(--warning); }
+    .player-row, .match-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #333;
+    }
+    .player-row:last-child, .match-row:last-child { border-bottom: none; }
+    .counter-group { display: flex; align-items: center; gap: 8px; }
+    .badge {
+      font-size: 14px;
+      background: #333;
+      padding: 4px 8px;
+      border-radius: 6px;
+      min-width: 24px;
+      text-align: center;
+    }
+    .btn-small {
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      font-size: 20px;
+      line-height: 1;
+      border-radius: 50%;
+    }
+    .event-log {
+      font-size: 13px;
+      color: var(--subtext);
+      margin-top: 4px;
+    }
+    .action-link {
+      background: none;
+      border: none;
+      color: var(--subtext);
+      padding: 0;
+      font-size: 12px;
+      margin-top: 6px;
+      margin-right: 12px;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Redditch Utd U13's</h1>
+
+  <!-- Navigation Tabs -->
+  <div class="tab-container">
+    <button class="tab-btn active" onclick="switchTab('matchTab')">Log Match</button>
+    <button class="tab-btn" onclick="switchTab('statsTab')">Stats & Roster</button>
+  </div>
+
+  <!-- TAB 1: LOG MATCH -->
+  <div id="matchTab" class="tab-content active">
+    <!-- Log / Edit Match Details -->
+    <div class="card" id="matchCard">
+      <h2 id="formTitle">Log Match Result</h2>
+      <div class="flex-row">
+        <input type="text" id="opponent" placeholder="Opponent Name">
+        <input type="date" id="matchDate">
+      </div>
+      <div class="grid-2" style="margin-bottom: 12px;">
+        <input type="number" id="goalsFor" placeholder="Redditch Goals" min="0">
+        <input type="number" id="goalsAgainst" placeholder="Opponent Goals" min="0">
+      </div>
+
+      <div style="border-top: 1px solid #333; padding-top: 12px; margin-top: 8px;">
+        <h3 style="font-size: 14px; color: var(--subtext);">Attribute Goal & Assist (Optional)</h3>
+        <div class="flex-row">
+          <select id="scorerSelect">
+            <option value="">-- Goal Scorer --</option>
+          </select>
+          <select id="assisterSelect">
+            <option value="">-- Assist By --</option>
+          </select>
+        </div>
+        <button onclick="addGoalEvent()" style="width: 100%; background: #444; margin-bottom: 8px; font-size: 14px;">+ Add Goal Contributor</button>
+        <div id="matchEventsList" class="event-log"></div>
+      </div>
+
+      <div class="flex-row" style="margin-top: 12px; margin-bottom: 0;">
+        <button id="saveMatchBtn" onclick="addMatch()" style="width: 100%;">Save Match Record</button>
+        <button id="cancelEditBtn" onclick="cancelEdit()" class="danger" style="display: none; width: 40%;">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Recent Matches -->
+    <div class="card">
+      <h2>Match History</h2>
+      <div id="matchList"></div>
+    </div>
+  </div>
+
+  <!-- TAB 2: STATS & ROSTER -->
+  <div id="statsTab" class="tab-content">
+    <!-- Performance Summary -->
+    <div class="card">
+      <h2>Team Performance</h2>
+      <div class="grid-4">
+        <div class="stat-box">
+          <div style="font-size: 11px; color: var(--subtext);">PLAYED</div>
+          <div class="stat-num" id="statPlayed">0</div>
+        </div>
+        <div class="stat-box">
+          <div style="font-size: 11px; color: var(--subtext);">W-D-L</div>
+          <div class="stat-num" id="statRecord" style="font-size: 16px; margin-top: 7px;">0-0-0</div>
+        </div>
+        <div class="stat-box">
+          <div style="font-size: 11px; color: var(--subtext);">GF / GA</div>
+          <div class="stat-num" id="statGoals" style="font-size: 16px; margin-top: 7px;">0/0</div>
+        </div>
+        <div class="stat-box">
+          <div style="font-size: 11px; color: var(--subtext);">DIFF</div>
+          <div class="stat-num" id="statDiff">0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Roster & Stats -->
+    <div class="card">
+      <h2>Player Leaderboard</h2>
+      <div class="flex-row">
+        <input type="text" id="playerName" placeholder="New Player Name...">
+        <button onclick="addPlayer()">Add</button>
+      </div>
+      <div id="roster" style="margin-top: 12px;"></div>
+    </div>
+
+    <button class="danger" onclick="resetAllData()" style="width: 100%;">Reset All Data</button>
+  </div>
+
+  <script>
+    const defaultSquad = [
+      "Jake", "Archie", "Josh", "Dylan", "Sam", 
+      "Ben", "Ollie", "Ethan", "Jack", "Oscar", 
+      "Adam", "George", "Tommy"
+    ];
+
+    let appData = JSON.parse(localStorage.getItem('team_tracker_data'));
+
+    if (!appData || !appData.players || appData.players.length === 0) {
+      appData = {
+        players: defaultSquad.map((name, index) => ({
+          id: Date.now() + index,
+          name: name,
+          goals: 0,
+          assists: 0
+        })),
+        matches: []
+      };
+      localStorage.setItem('team_tracker_data', JSON.stringify(appData));
+    }
+
+    let tempMatchEvents = [];
+    let editingMatchId = null;
+
+    document.getElementById('matchDate').valueAsDate = new Date();
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+      if (tabId === 'matchTab') {
+        document.querySelectorAll('.tab-btn')[0].classList.add('active');
+      } else {
+        document.querySelectorAll('.tab-btn')[1].classList.add('active');
+      }
+
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    function save() {
+      localStorage.setItem('team_tracker_data', JSON.stringify(appData));
+      render();
+    }
+
+    function addPlayer() {
+      const input = document.getElementById('playerName');
+      const name = input.value.trim();
+      if (!name) return;
+      appData.players.push({ id: Date.now(), name, goals: 0, assists: 0 });
+      input.value = '';
+      save();
+    }
+
+    function removePlayer(id) {
+      if (confirm("Remove this player from the roster?")) {
+        appData.players = appData.players.filter(p => p.id !== id);
+        save();
+      }
+    }
+
+    function updateStat(id, stat, amount) {
+      const player = appData.players.find(p => p.id === id);
+      if (player) {
+        player[stat] = Math.max(0, player[stat] + amount);
+        save();
+      }
+    }
+
+    function addGoalEvent() {
+      const scorerId = document.getElementById('scorerSelect').value;
+      const assisterId = document.getElementById('assisterSelect').value;
+
+      if (!scorerId && !assisterId) return;
+
+      const scorer = appData.players.find(p => p.id == scorerId);
+      const assister = appData.players.find(p => p.id == assisterId);
+
+      tempMatchEvents.push({
+        scorerId: scorer ? scorer.id : null,
+        scorerName: scorer ? scorer.name : 'Unassigned',
+        assisterId: assister ? assister.id : null,
+        assisterName: assister ? assister.name : 'None'
+      });
+
+      renderMatchEvents();
+      document.getElementById('scorerSelect').value = '';
+      document.getElementById('assisterSelect').value = '';
+    }
+
+    function renderMatchEvents() {
+      const el = document.getElementById('matchEventsList');
+      if (tempMatchEvents.length === 0) {
+        el.innerHTML = '';
+        return;
+      }
+      el.innerHTML = tempMatchEvents.map((e, idx) => `
+        <div>⚽ Goal ${idx+1}: <strong>${e.scorerName}</strong> ${e.assisterName !== 'None' ? `(Assist: <strong>${e.assisterName}</strong>)` : ''}</div>
+      `).join('');
+    }
+
+    function addMatch() {
+      const oppInput = document.getElementById('opponent');
+      const dateInput = document.getElementById('matchDate');
+      const gfInput = document.getElementById('goalsFor');
+      const gaInput = document.getElementById('goalsAgainst');
+
+      const opponent = oppInput.value.trim() || 'Unknown Opponent';
+      const date = dateInput.value || new Date().toISOString().split('T')[0];
+      const gf = parseInt(gfInput.value, 10) || 0;
+      const ga = parseInt(gaInput.value, 10) || 0;
+
+      const confirmMessage = `Confirm match submission:\n\nOpponent: vs ${opponent}\nScore: ${gf} - ${ga}\nDate: ${date}\nGoal Contributors: ${tempMatchEvents.length}`;
+      
+      if (!confirm(confirmMessage)) {
+        return;
+      }
+
+      if (editingMatchId) {
+        revertMatchStats(editingMatchId);
+        appData.matches = appData.matches.filter(m => m.id !== editingMatchId);
+      }
+
+      tempMatchEvents.forEach(e => {
+        if (e.scorerId) {
+          const p = appData.players.find(pl => pl.id === e.scorerId);
+          if (p) p.goals++;
+        }
+        if (e.assisterId) {
+          const p = appData.players.find(pl => pl.id === e.assisterId);
+          if (p) p.assists++;
+        }
+      });
+
+      appData.matches.unshift({
+        id: editingMatchId || Date.now(),
+        opponent,
+        date,
+        gf,
+        ga,
+        events: tempMatchEvents
+      });
+
+      resetForm();
+      save();
+    }
+
+    function editMatch(id) {
+      const match = appData.matches.find(m => m.id === id);
+      if (!match) return;
+
+      editingMatchId = match.id;
+      document.getElementById('formTitle').innerText = "Edit Match Record";
+      document.getElementById('opponent').value = match.opponent;
+      document.getElementById('matchDate').value = match.date;
+      document.getElementById('goalsFor').value = match.gf;
+      document.getElementById('goalsAgainst').value = match.ga;
+      
+      tempMatchEvents = match.events ? [...match.events] : [];
+      renderMatchEvents();
+
+      document.getElementById('saveMatchBtn').innerText = "Update Match Record";
+      document.getElementById('cancelEditBtn').style.display = "block";
+
+      document.getElementById('matchCard').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function cancelEdit() {
+      resetForm();
+      render();
+    }
+
+    function resetForm() {
+      editingMatchId = null;
+      document.getElementById('formTitle').innerText = "Log Match Result";
+      document.getElementById('opponent').value = '';
+      document.getElementById('matchDate').valueAsDate = new Date();
+      document.getElementById('goalsFor').value = '';
+      document.getElementById('goalsAgainst').value = '';
+      document.getElementById('saveMatchBtn').innerText = "Save Match Record";
+      document.getElementById('cancelEditBtn').style.display = "none";
+      tempMatchEvents = [];
+      renderMatchEvents();
+    }
+
+    function revertMatchStats(id) {
+      const match = appData.matches.find(m => m.id === id);
+      if (match && match.events) {
+        match.events.forEach(e => {
+          if (e.scorerId) {
+            const p = appData.players.find(pl => pl.id === e.scorerId);
+            if (p) p.goals = Math.max(0, p.goals - 1);
+          }
+          if (e.assisterId) {
+            const p = appData.players.find(pl => pl.id === e.assisterId);
+            if (p) p.assists = Math.max(0, p.assists - 1);
+          }
+        });
+      }
+    }
+
+    function removeMatch(id) {
+      if (confirm("Are you sure you want to delete this match? Associated player goals/assists will also be removed.")) {
+        revertMatchStats(id);
+        appData.matches = appData.matches.filter(m => m.id !== id);
+        if (editingMatchId === id) resetForm();
+        save();
+      }
+    }
+
+    function resetAllData() {
+      if (confirm("Are you sure you want to clear all match records and player stats?")) {
+        appData = {
+          players: defaultSquad.map((name, index) => ({
+            id: Date.now() + index,
+            name: name,
+            goals: 0,
+            assists: 0
+          })),
+          matches: []
+        };
+        resetForm();
+        save();
+      }
+    }
+
+    function render() {
+      const scorerSelect = document.getElementById('scorerSelect');
+      const assisterSelect = document.getElementById('assisterSelect');
+      
+      const sortedAlphabetical = [...appData.players].sort((a, b) => a.name.localeCompare(b.name));
+      const playerOptions = '<option value="">-- Select Player --</option>' + 
+        sortedAlphabetical.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+      
+      scorerSelect.innerHTML = playerOptions.replace('-- Select Player --', '-- Goal Scorer --');
+      assisterSelect.innerHTML = playerOptions.replace('-- Select Player --', '-- Assist By --');
+
+      let wins = 0, draws = 0, losses = 0, gfTotal = 0, gaTotal = 0;
+      appData.matches.forEach(m => {
+        gfTotal += m.gf;
+        gaTotal += m.ga;
+        if (m.gf > m.ga) wins++;
+        else if (m.gf === m.ga) draws++;
+        else losses++;
+      });
+
+      document.getElementById('statPlayed').innerText = appData.matches.length;
+      document.getElementById('statRecord').innerText = `${wins}-${draws}-${losses}`;
+      document.getElementById('statGoals').innerText = `${gfTotal}/${gaTotal}`;
+      const diff = gfTotal - gaTotal;
+      document.getElementById('statDiff').innerText = (diff > 0 ? `+${diff}` : diff);
+
+      const matchListEl = document.getElementById('matchList');
+      if (appData.matches.length === 0) {
+        matchListEl.innerHTML = '<p style="color: var(--subtext); margin:0;">No matches logged yet.</p>';
+      } else {
+        matchListEl.innerHTML = appData.matches.map(m => {
+          const outcome = m.gf > m.ga ? 'W' : m.gf === m.ga ? 'D' : 'L';
+          const outcomeColor = outcome === 'W' ? '#2e7d32' : outcome === 'D' ? '#f57c00' : '#d32f2f';
+          
+          const eventDetails = m.events && m.events.length > 0 
+            ? `<div class="event-log">${m.events.map(e => `⚽ ${e.scorerName}${e.assisterName !== 'None' ? ` (A: ${e.assisterName})` : ''}`).join('<br>')}</div>`
+            : '';
+
+          return `
+            <div class="match-row">
+              <div style="flex:1;">
+                <div style="font-weight: 600;">vs ${m.opponent}</div>
+                <div style="font-size: 12px; color: var(--subtext);">${m.date}</div>
+                ${eventDetails}
+                <div style="margin-top: 4px;">
+                  <button onclick="editMatch(${m.id})" class="action-link">Edit</button>
+                  <button onclick="removeMatch(${m.id})" class="action-link" style="color: var(--danger);">Delete</button>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 18px; font-weight: bold;">${m.gf} - ${m.ga}</span>
+                <span class="badge" style="background:${outcomeColor}; color:#fff; font-weight:bold;">${outcome}</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      const rosterEl = document.getElementById('roster');
+      if (appData.players.length === 0) {
+        rosterEl.innerHTML = '<p style="color: var(--subtext); margin:0;">No players added yet.</p>';
+      } else {
+        const sortedPlayers = [...appData.players].sort((a, b) => (b.goals - a.goals) || (b.assists - a.assists) || a.name.localeCompare(b.name));
+
+        rosterEl.innerHTML = sortedPlayers.map(p => `
+          <div class="player-row">
+            <div>
+              <div style="font-weight: 600; font-size: 16px;">${p.name}</div>
+              <button onclick="removePlayer(${p.id})" class="action-link" style="margin-top:2px;">Remove</button>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:6px;">
+              <div class="counter-group">
+                <span style="font-size:12px; color:var(--subtext); width:45px;">Goals:</span>
+                <button class="btn-small" onclick="updateStat(${p.id}, 'goals', -1)">-</button>
+                <span class="badge">${p.goals}</span>
+                <button class="btn-small" onclick="updateStat(${p.id}, 'goals', 1)">+</button>
+              </div>
+              <div class="counter-group">
+                <span style="font-size:12px; color:var(--subtext); width:45px;">Assists:</span>
+                <button class="btn-small" onclick="updateStat(${p.id}, 'assists', -1)">-</button>
+                <span class="badge">${p.assists}</span>
+                <button class="btn-small" onclick="updateStat(${p.id}, 'assists', 1)">+</button>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>
